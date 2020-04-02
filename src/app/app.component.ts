@@ -15,7 +15,8 @@ export class AppComponent  {
   resetExpression = false;
   resetOperand = false;
   hasResult = false;
-  operationKey = ''
+  operationKey = '';
+  showHistory = true;
   operations = {
     '+': this.sum,
     '-': this.sub,
@@ -34,13 +35,28 @@ export class AppComponent  {
 
   constructor(
     private historyService: HistoryService,
-  ) { }
+  ) { 
+    console.log("constructor");
+  }
 
   @HostListener('window:keydown', ['$event'])
   handleKeyDown(event: KeyboardEvent) {
     this.handleKey(event.key)
   }
 
+  @HostListener('window:resize', ['$event'])
+  handleResize(event) {
+    this.checkShowHistory();
+  }
+
+  ngOnInit() {
+    this.checkShowHistory();
+  }
+
+  private checkShowHistory() {
+    this.showHistory = window.innerWidth >= 400;
+  }
+  
   handleKey(key: string) {
     if(key === 'Enter' || key === '=') {
       this.opResult();
