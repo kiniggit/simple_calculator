@@ -1,0 +1,20 @@
+<b>History</b>
+<div *ngIf="historyService.history.length">
+  <div style="height: 300px; overflow-y: scroll; border:1px solid grey">
+    <div *ngFor='let entry of historyService.history.reverse()'
+      class="history-entry"> 
+      <div style="display: flex; text-align: right;">
+        <div class="history-selector" (click)="notify.emit(entry)"></div>
+        <div>{{entry.operands}}</div>
+      </div>
+      <div style="display: flex;">
+        <div class="history-selector" (click)="notify.emit(entry)"></div>
+        <div>{{entry.result}}</div> 
+      </div> 
+    </div>
+  </div>
+  <button class="clear" (click)="historyService.clear()">clear</button>
+</div>
+<div *ngIf="!historyService.history.length">
+  History is empty...  
+</div>

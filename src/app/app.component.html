@@ -1,0 +1,17 @@
+<div style="display: flex;">
+  <div style="display: flex; flex-direction: column;">
+    <label style="height: 20px; width: 176px; overflow: hidden;">{{ expression }}</label>
+    <div>
+      <input type="text" [(ngModel)]="operand" class="operand-input" disabled />
+    </div>
+
+    <div *ngFor="let rows of actions"> 
+      <button *ngFor="let action of rows" class="calc-button" (click)="handleKey(action.key)">
+        {{action.text ? action.text : action.key}}
+      </button>
+    </div>
+  </div>
+  <div style="flex: 1; padding-top: 10px; margin-left: 10px; height: 346px;">
+    <app-history (notify)="onSelectHistory($event)"></app-history>
+  </div>
+</div>

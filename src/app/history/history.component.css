@@ -1,0 +1,8 @@
+.history-entry {
+  text-align: right;
+}
+
+.history-selector {
+  flex: 1; 
+  min-width: 15px;
+}
