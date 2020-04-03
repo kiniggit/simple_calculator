@@ -66,6 +66,12 @@ export class AppComponent  {
       return;
     }
 
+    if (key === '%') {
+      this.operand = this.fixPrecision(+this.storedOperand * +this.operand / 100).toString();
+      this.opResult();
+      return;
+    }
+
     if(key in this.operations) {
       this.operationKey = key;
       this.storedOperand = this.operand;
@@ -93,6 +99,18 @@ export class AppComponent  {
       // We will limit the operand length so that it will fit in the html input
       return;
     } 
+
+    if(key === 't') {
+      this.operand = - +this.operand;
+    }
+
+    if(key === 'i') {
+      this.storedOperand = 1;
+      this.operationKey = '/';
+      this.hasResult = false;
+      this.opResult();
+      return;
+    }
 
     if(key.match(/\d/)) {
       if(this.hasResult) {
