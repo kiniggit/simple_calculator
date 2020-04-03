@@ -1,5 +1,5 @@
 <div style="display: flex;">
-  <div style="display: flex; flex-direction: column; border: 1px solid green;">
+  <div style="display: flex; flex-direction: column;">
     <label style="height: 20px; width: 176px; overflow: hidden;">{{ expression }}</label>
     <div>
       <input type="text" [(ngModel)]="operand" class="operand-input" disabled />
@@ -11,7 +11,7 @@
       </button>
     </div>
   </div>
-  <div style="flex: 1; padding-top: 10px; margin-left: 10px; height: 346px; border: 1px solid black;">
+  <div style="flex: 1; padding-top: 10px; margin-left: 10px; height: 346px;">
     <app-history *ngIf="showHistory" (notify)="onSelectHistory($event)"></app-history>
   </div>
 </div>

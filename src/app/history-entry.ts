@@ -1,6 +1,6 @@
 export interface HistoryEntry {
   readonly operands: string,
   readonly result: string,
-  readonly op2: string,
+  readonly storedOperand: string,
   readonly operationKey: string,
 }

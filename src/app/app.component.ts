@@ -1,7 +1,7 @@
 import { HostListener, Component } from '@angular/core';
 import { HistoryService } from './history.service';
 import { HistoryEntry } from './history-entry';
-
+import { SimpleMath } from './simple-math';
 @Component({
   selector: 'my-app',
   templateUrl: './app.component.html',
@@ -9,19 +9,18 @@ import { HistoryEntry } from './history-entry';
 })
 export class AppComponent  {
   expression = '';
-  op1 = '';
-  op2 = '';
+  storedOperand = '';
   operand = '';
-  resetExpression = false;
   resetOperand = false;
   hasResult = false;
   operationKey = '';
   showHistory = true;
+  
   operations = {
-    '+': this.sum,
-    '-': this.sub,
-    '/': this.div,
-    '*': this.mult,
+    '+': SimpleMath.sum,
+    '-': SimpleMath.sub,
+    '/': SimpleMath.div,
+    '*': SimpleMath.mult,
   }
 
   actions = [
@@ -32,6 +31,10 @@ export class AppComponent  {
     [{key: '1'}, {key: '2'}, {key: '3'}, {key: '+'}],
     [{key: 't', text:'+/-'}, {key: '0'}, {key: '.'}, {key: '='}],
   ]
+
+  keyHandlers = {
+    '.': this.addDecimalPoint,
+  }
 
   constructor(
     private historyService: HistoryService,
@@ -65,16 +68,19 @@ export class AppComponent  {
 
     if(key in this.operations) {
       this.operationKey = key;
-      this.op1 = this.operand;
+      this.storedOperand = this.operand;
       this.resetOperand = true;
-      this.updateExpression(this.operand, this.operationKey);
+      this.updateExpression(this.operand, this.operationKey, this.hasResult);
       this.hasResult = false;
       return;
     }
 
     if(key === 'Backspace' || key === '<') {
-      this.backspace();
-      return;
+      if(this.hasResult) {
+        this.expression = '';
+      } else {
+        this.operand = this.operand.length > 1 ? this.operand.slice(0,-1) : '0';
+      }
     }
 
     if(key === 'c' || key === 'C') {
@@ -91,66 +97,38 @@ export class AppComponent  {
     if(key.match(/\d/)) {
       if(this.hasResult) {
         this.clear();
-        this.hasResult = false;
       }
 
       if(this.resetOperand || this.operand === '0') {
         this.operand = '';
         this.resetOperand = false;
       }
+
       this.operand += key;
       return;
     }
 
-    if(key === '.' && !this.operand.includes('.')) {
-      this.operand += '.';
-      return;
+    if(this.keyHandlers.hasOwnProperty(key)) {
+      this.operand = this.keyHandlers[key](this.operand);
     }
-
   }
 
-  updateExpression(op, opKey) {
-    if(this.resetExpression) {
-      this.expression = ''
-      this.resetExpression = false;
-    }
+  addDecimalPoint(operand: string) {
+    return operand.includes('.') ? operand : operand + '.'; 
+  }
+
+  updateExpression(op, opKey, reset=false) {
+    if(reset) { this.expression = ''; }
     this.expression += `${op} ${opKey} `
   }
 
   clear() {
     this.resetOperand = true;
+    this.hasResult = false;
     this.expression = '';
     this.operand = '0';
-    this.op1 = '';
-    this.op2 = '';
+    this.storedOperand = '';
     this.operationKey = '';
-  }
-
-  backspace() {
-    if(this.hasResult) {
-      this.expression = '';
-      return;
-    }
-
-    if(this.operand != '0') {
-      this.operand = this.operand.length > 1 ? this.operand.slice(0,-1) : '0';
-    }
-  }
-
-  sum(a, b) {
-    return a + b;
-  }
-
-  sub(a, b) {
-    return a - b;
-  }
-
-  mult(a, b) {
-    return a * b;
-  }
-
-  div(a, b) {
-    return a / b;
   }
 
   fixPrecision(number) {
@@ -158,31 +136,37 @@ export class AppComponent  {
   }
 
   opResult() {
-    if(!this.op1) {
-      this.op1 = this.operand;
-      this.resetExpression = true;
-      this.updateExpression(this.op1, this.operationKey);
-    } else {
-      this.op2 = this.operand;
+    if(!this.operations.hasOwnProperty(this.operationKey)) {
+      // the given operation is not supported or not defined
+      console.error(`Operation not defined = '${this.operationKey}'`)
+      return;
     }
-    this.updateExpression(this.op2, '=');
-    this.resetExpression = true;
-    this.resetOperand = true;
-    this.operand = this.operations[this.operationKey](+this.op1, +this.op2);
+
+    var leftOp, rightOp;
+    if(this.hasResult) {
+      [leftOp, rightOp] = [this.operand, this.storedOperand];
+    } else {
+      [leftOp, rightOp] = [this.storedOperand, this.operand];
+      this.storedOperand = this.operand;
+    }
+
+    this.updateExpression(leftOp, this.operationKey, true);
+    this.updateExpression(rightOp, '=');
+    
+    this.operand = this.operations[this.operationKey](+leftOp, +rightOp);
     this.operand = this.fixPrecision(this.operand).toString();
     this.hasResult = true;
-    this.op1 = '';
-    this.historyService.add(this.expression, this.operand, this.op2,this.operationKey);
+    this.resetOperand = true;
+    this.historyService.add(this.expression, this.operand, this.storedOperand, this.operationKey);
   }
 
   onSelectHistory(entry: HistoryEntry) { 
     this.clear();
     this.expression = entry.operands;
     this.operand = entry.result;
-    this.op2 = entry.op2;
+    this.storedOperand = entry.storedOperand;
     this.operationKey = entry.operationKey;
     this.hasResult = true;
-    this.resetExpression = true;
     this.resetOperand = true;
   }
 }
