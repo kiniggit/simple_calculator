@@ -29,7 +29,7 @@ export class AppComponent  {
   }
 
   actions = [
-    [{key: '%'}, {key: '', text:'CE'}, {key: 'C'}, {key: 'Backspace', text: '<'}],
+    [{key: '%'}, {key: 'e', text:'CE'}, {key: 'C'}, {key: 'Backspace', text: '<'}],
     [{key: 'i', text: 'inv'}, {key: 's', text:'sqr'}, {key: 'r', text:'sqrt'}, {key: '/'}],
     [{key: '7'}, {key: '8'}, {key: '9'}, {key: 'x'}],
     [{key: '4'}, {key: '5'}, {key: '6'}, {key: '-'}],
@@ -109,6 +109,12 @@ export class AppComponent  {
 
     if(key === 'c' || key === 'C') {
       this.clear()
+      return;
+    }
+
+    if(key === 'e' || key === 'E') {
+      this.operand = '0';
+      this.resetOperand = true;
       return;
     }
 
