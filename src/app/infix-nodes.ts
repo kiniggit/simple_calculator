@@ -1,52 +1,54 @@
 import { SimpleMath } from './simple-math';
 
-export abstract class Node {
+export abstract class MathNode {
 	
   abstract compute();
 
   static factories = {
-    '+': Node.createSum,
-    '-': Node.createSub,
-    '/': Node.createDiv,
-    '*': Node.createMult,
-    'r': Node.createSqrt,
-    's': Node.createSqr,
+    '+': MathNode.createSum,
+    '-': MathNode.createSub,
+    '/': MathNode.createDiv,
+    '*': MathNode.createMult,
+    'r': MathNode.createSqrt,
+    's': MathNode.createSqr,
   }
 
-  static createSum(left: Node, right: Node) {
-    return new BinaryOperatorNode('+', SimpleMath.sum, left, right, false);
+  static createSum(left: MathNode, right: MathNode) {
+    return new BinaryOperator('+', SimpleMath.sum, left, right, false);
   }
 
-  static createSub(left: Node, right: Node) {
-    return new BinaryOperatorNode('-', SimpleMath.sub, left, right, false);
+  static createSub(left: MathNode, right: MathNode) {
+    return new BinaryOperator('-', SimpleMath.sub, left, right, false);
   }
 
-  static createDiv(left: Node, right: Node) {
-    return new BinaryOperatorNode('/', SimpleMath.div, left, right);
+  static createDiv(left: MathNode, right: MathNode) {
+    return new BinaryOperator('/', SimpleMath.div, left, right);
   } 
 
-  static createMult(left: Node, right: Node) {
-    return new BinaryOperatorNode('*', SimpleMath.mult, left, right);
+  static createMult(left: MathNode, right: MathNode) {
+    return new BinaryOperator('*', SimpleMath.mult, left, right);
   }
 
-  static createSqrt(node: Node) {
-    return new UnaryOperatorNode('sqrt', Math.sqrt, node);
+  static createSqrt(node: MathNode) {
+    return new UnaryOperator('sqrt', Math.sqrt, node);
   }
 
-  static createSqr(node: Node) {
-    return new UnaryOperatorNode('sqr', (value) => Math.pow(value, 2), node);
+  static createSqr(node: MathNode) {
+    return new UnaryOperator('sqr', (value) => Math.pow(value, 2), node);
   }
 
-  static createOperator(opKey: string, left: Node) {
-    if(!Node.factories.hasOwnProperty(opKey)) {
+  static createOperator(opKey: string, left: MathNode) {
+    if(!MathNode.factories.hasOwnProperty(opKey)) {
       throw new Error(`Operator '${opKey}' is not defined!`);
     }
-    return Node.factories[opKey](left, null);
+    return MathNode.factories[opKey](left, null);
   }
 }
 
-export class BinaryOperatorNode extends Node {
-  
+export class BinaryOperator extends MathNode {
+
+  opKey; operator; left; right; parenthesis;
+
   constructor(opKey, operator, left, right, parenthesis = true) {
   	super();
     this.opKey = opKey;
@@ -66,10 +68,10 @@ export class BinaryOperatorNode extends Node {
    	var leftSide = this.left ? this.left.toString() : '';
     var rightSide = this.right ? this.right.toString() : '';
     if(this.parenthesis) {
-     if(leftSide && this.left instanceof BinaryOperatorNode) {
+     if(leftSide && this.left instanceof BinaryOperator) {
        leftSide = `(${leftSide})`;
      }
-     if(rightSide && this.right instanceof BinaryOperatorNode) {
+     if(rightSide && this.right instanceof BinaryOperator) {
        rightSide = `(${rightSide})`;
      } 
     }
@@ -77,7 +79,9 @@ export class BinaryOperatorNode extends Node {
   }
 }
 
-export class UnaryOperatorNode extends Node {
+export class UnaryOperator extends MathNode {
+
+  opKey; operator; node; parenthesis;
 
   constructor(opKey, operator, node, parenthesis = true) {
   	super();
@@ -103,7 +107,9 @@ export class UnaryOperatorNode extends Node {
 
 }
 
-export class OperandNode extends Node {
+export class Operand extends MathNode {
+  value;
+
 	constructor(value) {
   	super();
   	this.value = value;

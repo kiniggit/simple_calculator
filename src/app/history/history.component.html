@@ -1,8 +1,10 @@
 <b>History</b>
 <div *ngIf="historyService.history.length">
   <div style="height: 300px; overflow-y: scroll; border:1px solid grey">
-    <div *ngFor='let entry of historyService.history.reverse()'
-      class="history-entry"> 
+    <!-- ngClass doc https://angular.io/api/common/NgClass -->
+    <div *ngFor='let entry of historyService.history.reverse(); let idx = index'
+      class="history-entry" (mouseover)="hoverIdx=idx" (mouseout)="hoverIdx=-1" 
+      [ngClass]="{'hover-entry': hoverIdx==idx}"> 
       <div style="display: flex; text-align: right;">
         <div class="history-selector" (click)="notify.emit(entry)"></div>
         <div>{{entry.operands}}</div>

@@ -5,4 +5,9 @@
 .history-selector {
   flex: 1; 
   min-width: 15px;
+  cursor: pointer;
+}
+
+.hover-entry {
+  background-color: lightgrey;
 }

@@ -2,7 +2,7 @@ import { HostListener, Component } from '@angular/core';
 import { HistoryService } from './history.service';
 import { HistoryEntry } from './history-entry';
 import { SimpleMath } from './simple-math';
-import { Node, UnaryOperatorNode, BinaryOperatorNode, OperandNode } from './infix-nodes';
+import { MathNode, UnaryOperator, BinaryOperator, Operand } from './infix-nodes';
 
 @Component({
   selector: 'my-app',
@@ -10,7 +10,7 @@ import { Node, UnaryOperatorNode, BinaryOperatorNode, OperandNode } from './infi
   styleUrls: [ './app.component.css' ]
 })
 export class AppComponent  {
-  root: Node = null;
+  root: MathNode = null;
   expression = '';
   storedOperand = '';
   operand = '';
@@ -83,16 +83,16 @@ export class AppComponent  {
       this.resetOperand = true;
       this.hasResult = false;
 
-      var newNode = new OperandNode(this.operand);
-      if(this.root != null && this.root instanceof BinaryOperatorNode) {
+      var newNode: MathNode = new Operand(this.operand);
+      if(this.root != null && this.root instanceof BinaryOperator) {
         this.root.right = newNode;
         this.operand = this.root.compute();
         newNode = this.root;
       }
-      this.root = Node.createOperator(this.operationKey, newNode);
+      this.root = MathNode.createOperator(this.operationKey, newNode);
       this.expression = this.root.toString();
 
-      if (this.root instanceof UnaryOperatorNode) {
+      if (this.root instanceof UnaryOperator) {
         this.opResult();
       }
 
@@ -125,7 +125,7 @@ export class AppComponent  {
     } 
 
     if(key === 't') {
-      this.operand = - +this.operand;
+      this.operand = (- +this.operand).toString();
     }
 
     if(key === 'i') {
@@ -189,8 +189,8 @@ export class AppComponent  {
     }
 
     if(this.root != null) {
-      if(this.root instanceof BinaryOperatorNode) {
-        this.root.right = new OperandNode(this.operand);        
+      if(this.root instanceof BinaryOperator) {
+        this.root.right = new Operand(this.operand);        
       }
       this.expression = this.root.toString();
       this.operand = this.root.compute();
