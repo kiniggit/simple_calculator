@@ -2,12 +2,15 @@ import { HostListener, Component } from '@angular/core';
 import { HistoryService } from './history.service';
 import { HistoryEntry } from './history-entry';
 import { SimpleMath } from './simple-math';
+import { Node, UnaryOperatorNode, BinaryOperatorNode, OperandNode } from './infix-nodes';
+
 @Component({
   selector: 'my-app',
   templateUrl: './app.component.html',
   styleUrls: [ './app.component.css' ]
 })
 export class AppComponent  {
+  root: Node = null;
   expression = '';
   storedOperand = '';
   operand = '';
@@ -21,6 +24,8 @@ export class AppComponent  {
     '-': SimpleMath.sub,
     '/': SimpleMath.div,
     '*': SimpleMath.mult,
+    'r': Math.sqrt,
+    's': Math.pow,
   }
 
   actions = [
@@ -76,8 +81,21 @@ export class AppComponent  {
       this.operationKey = key;
       this.storedOperand = this.operand;
       this.resetOperand = true;
-      this.updateExpression(this.operand, this.operationKey, this.hasResult);
       this.hasResult = false;
+
+      var newNode = new OperandNode(this.operand);
+      if(this.root != null && this.root instanceof BinaryOperatorNode) {
+        this.root.right = newNode;
+        this.operand = this.root.compute();
+        newNode = this.root;
+      }
+      this.root = Node.createOperator(this.operationKey, newNode);
+      this.expression = this.root.toString();
+
+      if (this.root instanceof UnaryOperatorNode) {
+        this.opResult();
+      }
+
       return;
     }
 
@@ -135,12 +153,8 @@ export class AppComponent  {
     return operand.includes('.') ? operand : operand + '.'; 
   }
 
-  updateExpression(op, opKey, reset=false) {
-    if(reset) { this.expression = ''; }
-    this.expression += `${op} ${opKey} `
-  }
-
   clear() {
+    this.root = null;
     this.resetOperand = true;
     this.hasResult = false;
     this.expression = '';
@@ -168,10 +182,19 @@ export class AppComponent  {
       this.storedOperand = this.operand;
     }
 
-    this.updateExpression(leftOp, this.operationKey, true);
-    this.updateExpression(rightOp, '=');
-    
-    this.operand = this.operations[this.operationKey](+leftOp, +rightOp);
+    if(this.root != null) {
+      if(this.root instanceof BinaryOperatorNode) {
+        this.root.right = new OperandNode(this.operand);        
+      }
+      this.expression = this.root.toString();
+      this.operand = this.root.compute();
+      this.root = null;
+    } else {
+      this.expression = `${leftOp} ${this.operationKey} ${rightOp}`;
+      this.operand = this.operations[this.operationKey](+leftOp, +rightOp);
+    }
+    this.expression += ' ='
+
     this.operand = this.fixPrecision(this.operand).toString();
     this.hasResult = true;
     this.resetOperand = true;
