@@ -18,7 +18,8 @@ export class AppComponent  {
   hasResult = false;
   operationKey = '';
   showHistory = true;
- 
+  isMouseDown = false; 
+
   actions = [
     [{key: '%'}, {key: 'e', text:'CE'}, {key: 'C'}, {key: 'Backspace', text: '<'}],
     [{key: 'i', text: 'inv'}, {key: 's', text:'sqr'}, {key: 'r', text:'sqrt'}, {key: '/'}],
@@ -38,9 +39,27 @@ export class AppComponent  {
     console.log("constructor");
   }
 
+  handleClick(key) {
+    if(this.isMouseDown) {
+      this.handleKey(key);
+      this.isMouseDown = false;
+    }  
+  }
+
+  @HostListener('window:mousedown', ['$event'])
+  handleMouseDown(event) {
+    // lock mousedown var so that handleClick 
+    // may delegate action to handleKey method.
+    // this way, we will only handle button actions
+    // that were triggered using mouse.
+    // All keyboard button triggers (space or enter)
+    // should be treated as 'compute result' action.
+    this.isMouseDown = true;
+  }
+  
   @HostListener('window:keydown', ['$event'])
   handleKeyDown(event: KeyboardEvent) {
-    this.handleKey(event.key)
+    this.handleKey(event.key);
   }
 
   @HostListener('window:resize', ['$event'])
@@ -58,7 +77,7 @@ export class AppComponent  {
   
   handleKey(key: string) {
     console.log(key)
-    if(key === 'Enter' || key === '=') {
+    if(key === 'Enter' || key === '=' || key == ' ') {
       this.opResult();
       return;
     }
