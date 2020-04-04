@@ -4,7 +4,7 @@ export abstract class MathNode {
 	
   abstract compute();
 
-  static factories = {
+  static operators = {
     '+': (left: MathNode, right: MathNode) => {
       return new BinaryOperator('+', SimpleMath.sum, left, right, false);
     },
@@ -26,10 +26,14 @@ export abstract class MathNode {
   }
 
   static createOperator(opKey: string, node: MathNode) {
-    if(!MathNode.factories.hasOwnProperty(opKey)) {
+    if(!MathNode.hasOperator(opKey)) {
       throw new Error(`Operator '${opKey}' is not defined!`);
     }
-    return MathNode.factories[opKey](node, null);
+    return MathNode.operators[opKey](node, null);
+  }
+
+  static hasOperator(opKey: string): boolean {
+    return MathNode.operators.hasOwnProperty(opKey);
   }
 }
 

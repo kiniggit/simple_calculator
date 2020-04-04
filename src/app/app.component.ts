@@ -18,16 +18,7 @@ export class AppComponent  {
   hasResult = false;
   operationKey = '';
   showHistory = true;
-  
-  operations = {
-    '+': SimpleMath.sum,
-    '-': SimpleMath.sub,
-    '/': SimpleMath.div,
-    '*': SimpleMath.mult,
-    'r': Math.sqrt,
-    's': Math.pow,
-  }
-
+ 
   actions = [
     [{key: '%'}, {key: 'e', text:'CE'}, {key: 'C'}, {key: 'Backspace', text: '<'}],
     [{key: 'i', text: 'inv'}, {key: 's', text:'sqr'}, {key: 'r', text:'sqrt'}, {key: '/'}],
@@ -66,6 +57,7 @@ export class AppComponent  {
   }
   
   handleKey(key: string) {
+    console.log(key)
     if(key === 'Enter' || key === '=') {
       this.opResult();
       return;
@@ -77,7 +69,7 @@ export class AppComponent  {
       return;
     }
 
-    if(key in this.operations) {
+    if(MathNode.hasOperator(key)) {
       this.operationKey = key;
       this.storedOperand = this.operand;
       this.resetOperand = true;
@@ -118,7 +110,7 @@ export class AppComponent  {
       return;
     }
 
-    // the operations below will append to operand text
+    // the operators below will append to operand text
     if(this.operand.length > 12 && !this.resetOperand) {
       // We will limit the operand length so that it will fit in the html input
       return;
@@ -174,7 +166,7 @@ export class AppComponent  {
   }
 
   opResult() {
-    if(!this.operations.hasOwnProperty(this.operationKey)) {
+    if(!MathNode.hasOperator(this.operationKey)) {
       // the given operation is not supported or not defined
       console.error(`Operation not defined = '${this.operationKey}'`)
       return;
@@ -188,20 +180,18 @@ export class AppComponent  {
       this.storedOperand = this.operand;
     }
 
-    if(this.root != null) {
-      if(this.root instanceof BinaryOperator) {
-        this.root.right = new Operand(this.operand);        
-      }
-      this.expression = this.root.toString();
-      this.operand = this.root.compute();
-      this.root = null;
-    } else {
-      this.expression = `${leftOp} ${this.operationKey} ${rightOp}`;
-      this.operand = this.operations[this.operationKey](+leftOp, +rightOp);
+    if(this.root == null) {
+      this.root = MathNode.createOperator(this.operationKey, new Operand(leftOp));
     }
-    this.expression += ' ='
 
-    this.operand = this.fixPrecision(this.operand).toString();
+    if(this.root instanceof BinaryOperator) {
+      this.root.right = new Operand(rightOp);        
+    }
+    
+    this.expression = this.root.toString() + " =";
+    this.operand = this.fixPrecision(this.root.compute()).toString();
+    this.root = null;
+
     this.hasResult = true;
     this.resetOperand = true;
     this.historyService.add(this.expression, this.operand, this.storedOperand, this.operationKey);
