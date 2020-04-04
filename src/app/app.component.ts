@@ -129,7 +129,7 @@ export class AppComponent  {
     }
 
     if(key === 'i') {
-      this.storedOperand = 1;
+      this.storedOperand = '1';
       this.operationKey = '/';
       this.hasResult = false;
       this.opResult();

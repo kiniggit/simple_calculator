@@ -8,9 +8,9 @@ export class HistoryService {
 
   constructor() { }
 
-  add(ops: string, res: string, op2: string, opKey: string) {
+  add(ops: string, res: string, storedOp: string, opKey: string) {
     this.history.push({
-      operands: ops, result: res, op2: op2, operationKey: opKey 
+      operands: ops, result: res, storedOperand: storedOp, operationKey: opKey 
     })
   }
 
