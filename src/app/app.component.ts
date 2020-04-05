@@ -16,12 +16,13 @@ export class AppComponent  {
   operand = '';
   resetOperand = false;
   hasResult = false;
-  operationKey = '';
+  operatorKey = '';
+  inputKey = '';
   showHistory = true;
   isMouseDown = false; 
-
+  keyHandlers = {};
   actions = [
-    [{key: '%'}, {key: 'e', text:'CE'}, {key: 'C'}, {key: 'Backspace', text: '<'}],
+    [{key: '%'}, {key: 'e', text:'CE'}, {key: 'C'}, {key: '<'}],
     [{key: 'i', text: 'inv'}, {key: 's', text:'sqr'}, {key: 'r', text:'sqrt'}, {key: '/'}],
     [{key: '7'}, {key: '8'}, {key: '9'}, {key: 'x'}],
     [{key: '4'}, {key: '5'}, {key: '6'}, {key: '-'}],
@@ -29,21 +30,38 @@ export class AppComponent  {
     [{key: 't', text:'+/-'}, {key: '0'}, {key: '.'}, {key: '='}],
   ]
 
-  keyHandlers = {
-    '.': this.addDecimalPoint,
-  }
+  
 
   constructor(
     private historyService: HistoryService,
   ) { 
-    console.log("constructor");
+    // Init key handlers dictionary.
+    // Each 'key' will trigger a specific handler.
+    this.keyHandlers = {
+      'enter': this.compute,
+      ' ': this.compute,
+      '=': this.compute,
+      '.': this.addDecimalPoint,
+      '<': this.backspace,
+      'backspace': this.backspace,
+      't': this.toggleSignal,
+      'c': this.clear,
+      'e': this.clearOnlyOperand,
+      '%': this.percentage,
+      'i': this.inverseOperand,
+    }
+
+    for(var n = 0; n < 10; n++) {
+      this.keyHandlers[n.toString()] = this.inputNumber;
+    }
+
+    Object.keys(MathNode.operators).forEach(key => {
+      this.keyHandlers[key] = this.inputOperator
+    });
   }
 
-  handleClick(key) {
-    if(this.isMouseDown) {
-      this.handleKey(key);
-      this.isMouseDown = false;
-    }  
+  ngOnInit() {
+    this.checkShowHistory();
   }
 
   @HostListener('window:mousedown', ['$event'])
@@ -67,107 +85,96 @@ export class AppComponent  {
     this.checkShowHistory();
   }
 
-  ngOnInit() {
-    this.checkShowHistory();
-  }
-
   private checkShowHistory() {
     this.showHistory = window.innerWidth >= 400;
   }
   
+  handleClick(key) {
+    if (this.isMouseDown) {
+      this.handleKey(key);
+      this.isMouseDown = false;
+    }  
+  }
+
   handleKey(key: string) {
-    console.log(key)
-    if(key === 'Enter' || key === '=' || key == ' ') {
-      this.opResult();
-      return;
+    key = key.toLocaleLowerCase();
+    if (this.keyHandlers.hasOwnProperty(key)) {
+      this.inputKey = key;
+      this.keyHandlers[key].bind(this)();
     }
+  }
 
-    if (key === '%') {
-      this.operand = this.fixPrecision(+this.storedOperand * +this.operand / 100).toString();
-      this.opResult();
-      return;
+  inputOperator() {
+    this.operatorKey = this.inputKey;
+    this.storedOperand = this.operand;
+    this.resetOperand = true;
+    this.hasResult = false;
+
+    var newNode: MathNode = new Operand(this.operand);
+    if (this.root != null && this.root instanceof BinaryOperator) {
+      this.root.right = newNode;
+      this.operand = this.root.compute();
+      newNode = this.root;
     }
+    this.root = MathNode.createOperator(this.operatorKey, newNode);
+    this.expression = this.root.toString();
 
-    if(MathNode.hasOperator(key)) {
-      this.operationKey = key;
-      this.storedOperand = this.operand;
-      this.resetOperand = true;
-      this.hasResult = false;
-
-      var newNode: MathNode = new Operand(this.operand);
-      if(this.root != null && this.root instanceof BinaryOperator) {
-        this.root.right = newNode;
-        this.operand = this.root.compute();
-        newNode = this.root;
-      }
-      this.root = MathNode.createOperator(this.operationKey, newNode);
-      this.expression = this.root.toString();
-
-      if (this.root instanceof UnaryOperator) {
-        this.opResult();
-      }
-
-      return;
+    if (this.root instanceof UnaryOperator) {
+      this.compute();
     }
+  }
 
-    if(key === 'Backspace' || key === '<') {
-      if(this.hasResult) {
-        this.expression = '';
-      } else {
-        this.operand = this.operand.length > 1 ? this.operand.slice(0,-1) : '0';
-      }
-    }
-
-    if(key === 'c' || key === 'C') {
-      this.clear()
-      return;
-    }
-
-    if(key === 'e' || key === 'E') {
-      this.operand = '0';
-      this.resetOperand = true;
-      return;
-    }
-
-    // the operators below will append to operand text
-    if(this.operand.length > 12 && !this.resetOperand) {
+  inputNumber() {
+    if (this.operand.length > 12 && !this.resetOperand) {
       // We will limit the operand length so that it will fit in the html input
       return;
     } 
 
-    if(key === 't') {
-      this.operand = (- +this.operand).toString();
+    if (this.hasResult) {
+      this.clear();
     }
 
-    if(key === 'i') {
-      this.storedOperand = '1';
-      this.operationKey = '/';
-      this.hasResult = false;
-      this.opResult();
-      return;
+    if (this.resetOperand || this.operand === '0') {
+      this.operand = '';
+      this.resetOperand = false;
     }
 
-    if(key.match(/\d/)) {
-      if(this.hasResult) {
-        this.clear();
-      }
+    this.operand += this.inputKey;
+  }
 
-      if(this.resetOperand || this.operand === '0') {
-        this.operand = '';
-        this.resetOperand = false;
-      }
+  percentage() {
+    this.operand = this.fixPrecision(+this.storedOperand * +this.operand / 100);
+    this.compute();
+  }
 
-      this.operand += key;
-      return;
-    }
+  inverseOperand() {
+    this.storedOperand = '1';
+    this.operatorKey = '/';
+    this.hasResult = false;
+    this.compute();
+  }
 
-    if(this.keyHandlers.hasOwnProperty(key)) {
-      this.operand = this.keyHandlers[key](this.operand);
+  toggleSignal() {
+    this.operand = (- +this.operand).toString();
+  }
+
+  addDecimalPoint() {
+    if (!this.operand.includes('.')) {
+      this.operand += '.';
     }
   }
 
-  addDecimalPoint(operand: string) {
-    return operand.includes('.') ? operand : operand + '.'; 
+  backspace() {
+    if (this.hasResult) {
+      this.expression = '';
+    } else {
+      this.operand = this.operand.length > 1 ? this.operand.slice(0,-1) : '0';
+    }
+  }
+
+  clearOnlyOperand() {
+    this.resetOperand = true;
+    this.operand = '0';
   }
 
   clear() {
@@ -175,45 +182,46 @@ export class AppComponent  {
     this.resetOperand = true;
     this.hasResult = false;
     this.expression = '';
-    this.operand = '0';
     this.storedOperand = '';
-    this.operationKey = '';
+    this.operatorKey = '';
+    this.inputKey = '';
+    this.operand = '0';
   }
 
-  fixPrecision(number) {
-    return parseFloat(number.toPrecision(12));
+  fixPrecision(number): string {
+    return parseFloat(number.toPrecision(12)).toString();
   }
 
-  opResult() {
-    if(!MathNode.hasOperator(this.operationKey)) {
+  compute() {
+    if (!MathNode.hasOperator(this.operatorKey)) {
       // the given operation is not supported or not defined
-      console.error(`Operation not defined = '${this.operationKey}'`)
+      console.error(`Operation not defined = '${this.operatorKey}'`)
       return;
     }
 
     var leftOp, rightOp;
-    if(this.hasResult) {
+    if (this.hasResult) {
       [leftOp, rightOp] = [this.operand, this.storedOperand];
     } else {
       [leftOp, rightOp] = [this.storedOperand, this.operand];
       this.storedOperand = this.operand;
     }
 
-    if(this.root == null) {
-      this.root = MathNode.createOperator(this.operationKey, new Operand(leftOp));
+    if (this.root == null) {
+      this.root = MathNode.createOperator(this.operatorKey, new Operand(leftOp));
     }
 
-    if(this.root instanceof BinaryOperator) {
+    if (this.root instanceof BinaryOperator) {
       this.root.right = new Operand(rightOp);        
     }
     
     this.expression = this.root.toString() + " =";
-    this.operand = this.fixPrecision(this.root.compute()).toString();
+    this.operand = this.fixPrecision(this.root.compute());
     this.root = null;
 
     this.hasResult = true;
     this.resetOperand = true;
-    this.historyService.add(this.expression, this.operand, this.storedOperand, this.operationKey);
+    this.historyService.add(this.expression, this.operand, this.storedOperand, this.operatorKey);
   }
 
   onSelectHistory(entry: HistoryEntry) { 
@@ -221,7 +229,7 @@ export class AppComponent  {
     this.expression = entry.operands;
     this.operand = entry.result;
     this.storedOperand = entry.storedOperand;
-    this.operationKey = entry.operationKey;
+    this.operatorKey = entry.operatorKey;
     this.hasResult = true;
     this.resetOperand = true;
   }

@@ -25,7 +25,7 @@ export abstract class MathNode {
     },
   }
 
-  static createOperator(opKey: string, node: MathNode) {
+  static createOperator(opKey: string, node: MathNode): MathNode {
     if(!MathNode.hasOperator(opKey)) {
       throw new Error(`Operator '${opKey}' is not defined!`);
     }
@@ -38,7 +38,9 @@ export abstract class MathNode {
 }
 
 export abstract class OperatorNode extends MathNode {
+
   opKey; operator; parenthesis;
+
   constructor(opKey, operator, parenthesis) {
     super();
     this.opKey = opKey;
