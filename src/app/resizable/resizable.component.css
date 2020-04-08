@@ -1,0 +1,33 @@
+.resizable-main {
+  position: relative; 
+  border: 1px solid black; 
+}
+
+.resizable-ns {
+  border: 1px solid red; 
+  position: absolute; 
+  bottom: -4px;
+  height: 5px; 
+  width: 100%;
+  z-index: 1;
+}
+
+.resizable-ew {
+  border: 1px solid green; 
+  position: absolute; 
+  top: 0px; 
+  right: -4px; 
+  height: 100%;
+  width: 5px; 
+  z-index: 1;
+}
+
+.resizable-nwse {
+  border: 1px solid blue; 
+  position: absolute; 
+  bottom: -4px; 
+  right: -4px; 
+  height: 5px; 
+  width: 5px; 
+  z-index: 2;
+}

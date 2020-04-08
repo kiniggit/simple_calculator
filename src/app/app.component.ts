@@ -30,8 +30,6 @@ export class AppComponent  {
     [{key: 't', text:'+/-'}, {key: '0'}, {key: '.'}, {key: '='}],
   ]
 
-  
-
   constructor(
     private historyService: HistoryService,
   ) { 
@@ -233,4 +231,5 @@ export class AppComponent  {
     this.hasResult = true;
     this.resetOperand = true;
   }
+
 }

@@ -1,17 +1,21 @@
-<div style="display: flex;">
-  <div style="display: flex; flex-direction: column;">
-    <label style="height: 20px; width: 176px; overflow: hidden;">{{ expression }}</label>
-    <div>
-      <input type="text" [(ngModel)]="operand" class="operand-input" disabled />
-    </div>
+<app-resizable width="600" height="356">
+  <div style="display: flex; height: 100%;">
+    <div style="flex: 1; display: flex; flex-direction: column; border: 1px solid blue;">
+      <label style="min-height: 20px; height: 20px; width: 100%; border: 1px solid green; overflow: hidden;">{{ expression }}</label>
+      <div>
+        <input type="text" [(ngModel)]="operand" class="operand-input" disabled />
+      </div>
 
-    <div *ngFor="let rows of actions"> 
-      <button *ngFor="let action of rows" class="calc-button" (click)="handleClick(action.key)">
-        {{action.text ? action.text : action.key}}
-      </button>
+      <div style="display: flex; flex-direction: column; height: 100%;"> 
+        <div *ngFor="let rows of actions" style="flex: 1; display: flex;"> 
+          <button *ngFor="let action of rows" class="calc-button" (click)="handleClick(action.key)">
+            {{action.text ? action.text : action.key}}
+          </button>
+        </div>
+      </div>
+    </div>
+    <div style="position: relative; min-width: 250px; width: 250px; min-height: 298px; padding-top: 10px; margin-left: 10px;">
+      <app-history *ngIf="showHistory" (notify)="onSelectHistory($event)"></app-history>
     </div>
   </div>
-  <div style="flex: 1; padding-top: 10px; margin-left: 10px; height: 346px;">
-    <app-history *ngIf="showHistory" (notify)="onSelectHistory($event)"></app-history>
-  </div>
-</div>
+</app-resizable>
