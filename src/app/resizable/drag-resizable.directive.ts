@@ -29,8 +29,8 @@ export class DragResizableDirective {
     }
 
     var parentNode = this.el.nativeElement.parentNode;    
-    var currHeight = +parentNode.style.height.slice(0,-2);
-    var currWidth = +parentNode.style.width.slice(0,-2);
+    let currHeight = parseInt(parentNode.style.height);
+    var currWidth = parseInt(parentNode.style.width);
      
     if (this.direction == 'ns' || this.direction == 'nwse') {
       parentNode.style.height = `${currHeight+event.offsetY}px`;

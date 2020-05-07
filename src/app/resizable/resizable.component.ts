@@ -1,11 +1,13 @@
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, Input, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 
 @Component({
   selector: 'app-resizable',
   templateUrl: './resizable.component.html',
   styleUrls: ['./resizable.component.css']
 })
-export class ResizableComponent {
+export class ResizableComponent implements AfterViewInit {
+
+  @ViewChild('resizableMain', null) resizableMain: ElementRef;
 
   @Input() width;
   @Input() height;
@@ -13,10 +15,9 @@ export class ResizableComponent {
   constructor() {}
 
   ngAfterViewInit() {
-    var mainDiv = document.getElementsByClassName('resizable-main')[0];
-    console.log(mainDiv);
-    mainDiv.style.width = this.width+'px';
-    mainDiv.style.height = this.height+'px';
+    let el = this.resizableMain.nativeElement;
+    el.style.width = this.width+'px';
+    el.style.height = this.height+'px';
   }
 
 }
